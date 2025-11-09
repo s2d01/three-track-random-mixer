@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Three-Track Music Player</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 20px;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.10);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .section h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    /* Upload */
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.20);
+      padding: 12px 24px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .file-input-label:hover {
+      background: rgba(255, 255, 255, 0.30);
+    }
+
+    #file-name {
+      margin-left: 10px;
+      font-size: 1em;
+      opacity: 0.8;
+    }
+
+    /* Pulsanti globali */
+    button {
+      padding: 14px 26px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .primary {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .secondary {
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      color: white;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .controls-main {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    /* Tracks */
+    #tracks-section {
+      display: none; /* compare solo dopo Pick 3 Random Tracks */
+    }
+
+    .tracks-wrapper {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .track-card {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    .track-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .track-number {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .track-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .track-filename {
+      font-size: 0.7rem;
+      opacity: 0.6;
+      word-break: break-all;
+    }
+
+    .track-controls-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .track-btn {
+      flex: 1;
+      padding: 8px 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+
+    .track-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .track-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
+    }
+
+    .track-btn.play {
+      color: #00e676;      /* play verde */
+    }
+
+    .track-btn.stop {
+      color: #000000;      /* stop nero ⬛ */
+      font-size: 1.4rem;
+    }
+
+    .track-btn.test {
+      color: #1e90ff;      /* preview blu */
+      font-size: 1.6rem;
+    }
+
+    .track-btn.reverse {
+      color: #ff0000;
+    }
+
+    .reverse-icon {
+      font-size: 1.4rem;
+      color: #ff0000;
+      opacity: 0.35;          /* OFF sfumato */
+      transition: opacity 0.15s ease;
+    }
+
+    .reverse-icon.on {
+      opacity: 1;             /* ON pieno */
+    }
+
+    /* Volume */
+    .volume-wrapper {
+      margin-top: 2px;
+    }
+
+    .volume-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .volume-slider {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #4ecdc4;
+      box-shadow: 0 0 6px rgba(78,205,196,0.9);
+    }
+
+    /* Save mix */
+    .save-input {
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+      max-width: 360px;
+      background: rgba(0, 0, 0, 0.35);
+      color: #fff;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .save-input:focus {
+      box-shadow: 0 0 8px rgba(78,205,196,0.5);
+      border: 1px solid rgba(78,205,196,0.8);
+    }
+
+    .save-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .controls-main {
+        flex-wrap: wrap;
+      }
+      .controls-main button {
+        flex: 1 1 calc(50% - 10px);
+      }
+      .tracks-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Three-Track Music Player</h1>
+    <p>Load audio files and mix three random tracks at once.</p>
+
+    <!-- Upload -->
+    <div class="section">
+      <h3>📁 Upload Audio Files</h3>
+      <div class="file-input-wrapper">
+        <label class="file-input-label">
+          Choose Files
+          <input
+            type="file"
+            id="audioFiles"
+            multiple
+            accept="audio/*"
+          />
+        </label>
+        <span id="file-name">No file selected</span>
+      </div>
+    </div>
+
+    <!-- Pulsanti globali -->
+    <div class="section">
+      <div class="controls-main">
+        <button id="randomizeBtn" class="primary"   disabled>🎲 Pick 3 Random Tracks</button>
+        <button id="playAllBtn"   class="secondary" disabled>▶️ Play All</button>
+        <button id="loopAllBtn"   class="secondary" disabled>🔄 Loop All</button>
+        <button id="pauseAllBtn"  class="secondary" disabled>⏸️ Pause All</button>
+        <button id="stopAllBtn"   class="secondary" disabled>⏹️ Stop All</button>
+      </div>
+    </div>
+
+    <!-- 3 Tracks (solo dopo random) -->
+    <div class="section" id="tracks-section">
+      <div class="tracks-wrapper">
+        <!-- Track 1 -->
+        <div class="track-card" data-track="0">
+          <div class="track-header">
+            <div class="track-number">1</div>
+            <div>
+              <div class="track-title">Track 1</div>
+              <div class="track-filename" id="track-filename-0">No file selected</div>
+            </div>
+          </div>
+          <div class="track-controls-row">
+            <button class="track-btn play"    data-action="play"    data-track="0">▶</button>
+            <button class="track-btn stop"    data-action="stop"    data-track="0">⬛</button>
+            <button class="track-btn test"    data-action="test"    data-track="0">🔊</button>
+            <button class="track-btn reverse" data-action="reverse" data-track="0">
+              <span class="reverse-icon">◀</span>
+            </button>
+          </div>
+          <div class="volume-wrapper">
+            <div class="volume-label">
+              <span>Volume</span><span id="volume-value-0">50%</span>
+            </div>
+            <input type="range" class="volume-slider" id="volume-0" min="0" max="100" value="50" />
+          </div>
+        </div>
+
+        <!-- Track 2 -->
+        <div class="track-card" data-track="1">
+          <div class="track-header">
+            <div class="track-number">2</div>
+            <div>
+              <div class="track-title">Track 2</div>
+              <div class="track-filename" id="track-filename-1">No file selected</div>
+            </div>
+          </div>
+          <div class="track-controls-row">
+            <button class="track-btn play"    data-action="play"    data-track="1">▶</button>
+            <button class="track-btn stop"    data-action="stop"    data-track="1">⬛</button>
+            <button class="track-btn test"    data-action="test"    data-track="1">🔊</button>
+            <button class="track-btn reverse" data-action="reverse" data-track="1">
+              <span class="reverse-icon">◀</span>
+            </button>
+          </div>
+          <div class="volume-wrapper">
+            <div class="volume-label">
+              <span>Volume</span><span id="volume-value-1">50%</span>
+            </div>
+            <input type="range" class="volume-slider" id="volume-1" min="0" max="100" value="50" />
+          </div>
+        </div>
+
+        <!-- Track 3 -->
+        <div class="track-card" data-track="2">
+          <div class="track-header">
+            <div class="track-number">3</div>
+            <div>
+              <div class="track-title">Track 3</div>
+              <div class="track-filename" id="track-filename-2">No file selected</div>
+            </div>
+          </div>
+          <div class="track-controls-row">
+            <button class="track-btn play"    data-action="play"    data-track="2">▶</button>
+            <button class="track-btn stop"    data-action="stop"    data-track="2">⬛</button>
+            <button class="track-btn test"    data-action="test"    data-track="2">🔊</button>
+            <button class="track-btn reverse" data-action="reverse" data-track="2">
+              <span class="reverse-icon">◀</span>
+            </button>
+          </div>
+          <div class="volume-wrapper">
+            <div class="volume-label">
+              <span>Volume</span><span id="volume-value-2">50%</span>
+            </div>
+            <input type="range" class="volume-slider" id="volume-2" min="0" max="100" value="50" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save mix / Presets -->
+    <div class="section">
+      <h3>💾 Save Current Mix</h3>
+      <input
+        type="text"
+        class="save-input"
+        id="combinationName"
+        placeholder="Enter a name for this mix..."
+      />
+      <div class="save-buttons">
+        <button class="primary"   id="saveCombinationBtn" disabled>💾 Save This Mix</button>
+        <button class="secondary" id="exportArchiveBtn"   disabled>📤 Export Mixes</button>
+        <button class="secondary" id="importArchiveBtn">📥 Import Mixes</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none;">
+      <div id="archiveList" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script>
+    class MusicPlayer {
+      constructor() {
+        this.audioFiles      = [];
+        this.currentTracks   = [null, null, null];
+        this.audioBuffers    = [null, null, null];
+        this.decodedBuffers  = [null, null, null];
+        this.audioSources    = [null, null, null];
+        this.gainNodes       = [null, null, null];
+
+        this.reversedTracks  = [false, false, false];
+        this.isLooping       = false;
+        this.audioContext    = null;
+
+        this.playbackOffset  = [0, 0, 0]; // sec
+        this.isPaused        = [false, false, false];
+        this.startTimes      = [0, 0, 0];
+
+        this.savedCombinations = [];
+
+        this.setupEventListeners();
+        this.logStatus("Upload at least 3 audio files to start");
+      }
+
+      setupEventListeners() {
+        const fileInput   = document.getElementById("audioFiles");
+        const fileNameSpan = document.getElementById("file-name");
+
+        fileInput.addEventListener("change", (e) => {
+          const files = Array.from(e.target.files);
+          this.loadFiles(files);
+          fileNameSpan.textContent = files.length
+            ? `${files.length} file(s) selected`
+            : "No file selected";
+        });
+
+        document.getElementById("randomizeBtn").addEventListener("click", () => this.selectRandomTracks());
+        document.getElementById("playAllBtn").addEventListener("click",   () => this.playAll());
+        document.getElementById("loopAllBtn").addEventListener("click",   () => this.toggleLoopAll());
+        document.getElementById("pauseAllBtn").addEventListener("click",  () => this.pauseAll());
+        document.getElementById("stopAllBtn").addEventListener("click",   () => this.stopAll());
+
+        document.querySelectorAll(".track-btn").forEach(btn => {
+          const action = btn.getAttribute("data-action");
+          const index  = parseInt(btn.getAttribute("data-track"), 10);
+          if (isNaN(index) || !action) return;
+          btn.addEventListener("click", () => {
+            if (action === "play")    this.playTrack(index);
+            if (action === "stop")    this.stopTrack(index);
+            if (action === "test")    this.testTrack(index);
+            if (action === "reverse") this.reverseTrack(index);
+          });
+        });
+
+        [0,1,2].forEach(i => {
+          const slider = document.getElementById(`volume-${i}`);
+          const label  = document.getElementById(`volume-value-${i}`);
+          if (slider && label) {
+            slider.addEventListener("input", (e) => {
+              const val = e.target.value;
+              label.textContent = `${val}%`;
+              if (this.gainNodes[i]) {
+                this.gainNodes[i].gain.value = val / 100;
+              }
+            });
+          }
+        });
+
+        document.getElementById("saveCombinationBtn").addEventListener("click", () => this.saveCombination());
+        document.getElementById("exportArchiveBtn").addEventListener("click", () => this.exportArchive());
+        document.getElementById("importArchiveBtn").addEventListener("click", () => {
+          document.getElementById("importFile").click();
+        });
+        document.getElementById("importFile").addEventListener("change", (e) => this.importArchive(e));
+      }
+
+      logStatus(msg) {
+        console.log("[STATUS]", msg);
+      }
+
+      loadFiles(files) {
+        this.audioFiles = files.filter(file =>
+          file.type.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(file.name)
+        );
+        this.logStatus(`${this.audioFiles.length} audio files loaded`);
+        document.getElementById("randomizeBtn").disabled = this.audioFiles.length < 3;
+      }
+
+      async selectRandomTracks() {
+        if (this.audioFiles.length < 3) {
+          this.logStatus("You need at least 3 audio files");
+          return;
+        }
+
+        const shuffled = [...this.audioFiles].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 3);
+
+        this.resetPlaybackState(true);
+        this.logStatus("Loading 3 random tracks...");
+
+        await Promise.all(selected.map((file, index) => this.loadTrackIntoSlot(file, index)));
+        this.currentTracks = selected;
+
+        document.getElementById("tracks-section").style.display = "block";
+
+        [0,1,2].forEach(i => {
+          const icon = document.querySelector(`.track-card[data-track="${i}"] .reverse-icon`);
+          if (icon) {
+            icon.classList.remove("on");
+            icon.style.opacity = "0.35";
+          }
+        });
+
+        document.getElementById("playAllBtn").disabled   = false;
+        document.getElementById("loopAllBtn").disabled   = false;
+        document.getElementById("pauseAllBtn").disabled  = false;
+        document.getElementById("stopAllBtn").disabled   = false;
+        document.getElementById("saveCombinationBtn").disabled = false;
+
+        this.logStatus("3 random tracks ready");
+      }
+
+      resetPlaybackState(full = true) {
+        this.stopAll();
+        this.audioSources    = [null, null, null];
+        this.gainNodes       = [null, null, null];
+        this.reversedTracks  = [false, false, false];
+        this.playbackOffset  = [0, 0, 0];
+        this.isPaused        = [false, false, false];
+        this.startTimes      = [0, 0, 0];
+        if (full) {
+          this.audioBuffers   = [null, null, null];
+          this.decodedBuffers = [null, null, null];
+          this.currentTracks  = [null, null, null];
+        }
+      }
+
+      loadTrackIntoSlot(file, index) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.audioBuffers[index] = e.target.result;
+            this.decodedBuffers[index] = null;
+            const label = document.getElementById(`track-filename-${index}`);
+            if (label) label.textContent = file.name;
+            resolve();
+          };
+          reader.onerror = reject;
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      async ensureAudioContext() {
+        if (!this.audioContext) {
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioContext.state === "suspended") {
+          await this.audioContext.resume();
+        }
+        return this.audioContext;
+      }
+
+      async getDecodedBuffer(index) {
+        if (!this.audioBuffers[index]) return null;
+        const ctx = await this.ensureAudioContext();
+        if (!this.decodedBuffers[index]) {
+          this.decodedBuffers[index] = await ctx.decodeAudioData(this.audioBuffers[index].slice(0));
+        }
+        return this.decodedBuffers[index];
+      }
+
+      reverseBuffer(buffer) {
+        const reversed = this.audioContext.createBuffer(
+          buffer.numberOfChannels,
+          buffer.length,
+          buffer.sampleRate
+        );
+        for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+          const input = buffer.getChannelData(ch);
+          const output = reversed.getChannelData(ch);
+          for (let i = 0, l = buffer.length; i < l; i++) {
+            output[i] = input[l - 1 - i];
+          }
+        }
+        return reversed;
+      }
+
+      async playTrack(index) {
+        if (!this.currentTracks[index]) return;
+        const ctx = await this.ensureAudioContext();
+
+        if (this.audioSources[index]) {
+          try { this.audioSources[index].stop(); } catch (e) {}
+          this.audioSources[index] = null;
+        }
+
+        const baseBuffer = await this.getDecodedBuffer(index);
+        if (!baseBuffer) return;
+
+        const finalBuffer = this.reversedTracks[index]
+          ? this.reverseBuffer(baseBuffer)
+          : baseBuffer;
+
+        let offset = this.playbackOffset[index] || 0;
+        if (offset >= finalBuffer.duration || offset < 0) {
+          offset = 0;
+        }
+
+        const source = ctx.createBufferSource();
+        const gain   = ctx.createGain();
+
+        source.buffer = finalBuffer;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+
+        const slider = document.getElementById(`volume-${index}`);
+        gain.gain.value = slider ? slider.value / 100 : 0.5;
+
+        this.audioSources[index] = source;
+        this.gainNodes[index]    = gain;
+        this.isPaused[index]     = false;
+
+        this.startTimes[index] = ctx.currentTime - offset;
+
+        source.start(0, offset);
+
+        source.onended = () => {
+          if (this.audioSources[index] === source) {
+            this.audioSources[index]   = null;
+            this.playbackOffset[index] = 0;
+            this.isPaused[index]       = false;
+            this.startTimes[index]     = 0;
+          }
+          if (this.isLooping) {
+            this.playTrack(index);
+          }
+        };
+      }
+
+      stopTrack(index) {
+        const src = this.audioSources[index];
+        if (src) {
+          try { src.stop(); } catch (e) {}
+        }
+        this.audioSources[index]   = null;
+        this.isPaused[index]       = false;
+        this.playbackOffset[index] = 0;
+        this.startTimes[index]     = 0;
+      }
+
+      async testTrack(index) {
+        // Preview 5 secondi da inizio, senza distruggere stato di pausa eventuale
+        const prevOffset = this.playbackOffset[index];
+        const prevPaused = this.isPaused[index];
+
+        this.playbackOffset[index] = 0;
+        this.isPaused[index]       = false;
+
+        await this.playTrack(index);
+
+        setTimeout(() => {
+          this.stopTrack(index);
+          if (prevPaused && prevOffset > 0) {
+            this.playbackOffset[index] = prevOffset;
+            this.isPaused[index]       = true;
+          }
+        }, 5000); // 5 secondi
+      }
+
+      reverseTrack(index) {
+        this.reversedTracks[index] = !this.reversedTracks[index];
+        const icon = document.querySelector(`.track-card[data-track="${index}"] .reverse-icon`);
+        if (icon) {
+          if (this.reversedTracks[index]) {
+            icon.classList.add("on");
+            icon.style.opacity = "1";
+          } else {
+            icon.classList.remove("on");
+            icon.style.opacity = "0.35";
+          }
+        }
+      }
+
+      async playAll() {
+        await Promise.all([0,1,2].map(i => this.playTrack(i)));
+      }
+
+      toggleLoopAll() {
+        this.isLooping = !this.isLooping;
+        const btn = document.getElementById("loopAllBtn");
+
+        if (this.isLooping) {
+          btn.textContent = "🔄 Loop All (On)";
+          // se nulla sta suonando, avvia da capo e metti in loop
+          const anyPlaying = this.audioSources.some(src => src);
+          if (!anyPlaying && this.currentTracks.some(t => t)) {
+            this.playbackOffset = [0,0,0];
+            this.isPaused       = [false,false,false];
+            this.playAll();
+          }
+        } else {
+          btn.textContent = "🔄 Loop All";
+          // non stoppiamo, semplicemente non rilancia più all'onended
+        }
+      }
+
+      pauseAll() {
+        if (!this.audioContext) return;
+
+        this.isLooping = false;
+        document.getElementById("loopAllBtn").textContent = "🔄 Loop All";
+
+        [0,1,2].forEach(i => {
+          const src = this.audioSources[i];
+          if (src) {
+            const now = this.audioContext.currentTime;
+            const elapsed = Math.max(0, now - this.startTimes[i]);
+            this.playbackOffset[i] = elapsed;
+            try { src.stop(); } catch (e) {}
+            this.audioSources[i] = null;
+            this.isPaused[i] = true;
+          }
+        });
+
+        this.logStatus("Paused all tracks");
+      }
+
+      stopAll() {
+        this.isLooping = false;
+        document.getElementById("loopAllBtn").textContent = "🔄 Loop All";
+
+        [0,1,2].forEach(i => this.stopTrack(i));
+
+        this.logStatus("Stopped all tracks");
+      }
+
+      // ---- Preset system (inchiodato per demo) ----
+
+      saveCombination() {
+        if (!this.currentTracks.some(t => t)) return;
+
+        const nameInput = document.getElementById("combinationName");
+        const raw  = (nameInput.value || "").trim();
+        const name = raw || `Mix ${new Date().toLocaleTimeString()}`;
+
+        const tracks = this.currentTracks.map(t => (t ? t.name : null));
+        const combo  = { id: Date.now(), name, tracks };
+
+        this.savedCombinations.push(combo);
+        nameInput.value = "";
+
+        this.renderArchive();
+        document.getElementById("exportArchiveBtn").disabled = this.savedCombinations.length === 0;
+        this.logStatus(`Saved mix: ${name}`);
+      }
+
+      renderArchive() {
+        const box = document.getElementById("archiveList");
+        if (!this.savedCombinations.length) {
+          box.innerHTML = "";
+          return;
+        }
+        box.innerHTML = this.savedCombinations.map(c => `
+          <div style="padding:6px 8px; margin-bottom:4px; background:rgba(0,0,0,0.35); border-radius:6px; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div>
+              <strong>${c.name}</strong><br/>
+              <span style="opacity:0.7;">${c.tracks.filter(Boolean).join(" · ")}</span>
+            </div>
+            <button
+              style="padding:4px 10px; font-size:0.75rem; border-radius:6px; border:none; cursor:pointer; background:rgba(78,205,196,0.9); color:#000;"
+              onclick="player.loadCombination(${c.id})">
+              Load
+            </button>
+          </div>
+        `).join("");
+      }
+
+      loadCombination(id) {
+        const combo = this.savedCombinations.find(c => c.id === id);
+        if (!combo) return;
+
+        const mapByName = new Map(this.audioFiles.map(f => [f.name, f]));
+        const filesForSlots = combo.tracks.map(name =>
+          (name && mapByName.has(name)) ? mapByName.get(name) : null
+        );
+
+        if (!filesForSlots.some(f => f)) {
+          alert("Files for this mix are not loaded. Please upload the corresponding audio files first.");
+          return;
+        }
+
+        this.resetPlaybackState(true);
+        document.getElementById("tracks-section").style.display = "block";
+
+        const loads = filesForSlots.map((file, index) => {
+          if (!file) {
+            const label = document.getElementById(`track-filename-${index}`);
+            if (label) label.textContent = "Not found";
+            return Promise.resolve();
+          }
+          return this.loadTrackIntoSlot(file, index).then(() => {
+            this.currentTracks[index] = file;
+          });
+        });
+
+        Promise.all(loads).then(() => {
+          document.getElementById("playAllBtn").disabled   = false;
+          document.getElementById("loopAllBtn").disabled   = false;
+          document.getElementById("pauseAllBtn").disabled  = false;
+          document.getElementById("stopAllBtn").disabled   = false;
+          document.getElementById("saveCombinationBtn").disabled = false;
+
+          [0,1,2].forEach(i => {
+            const icon = document.querySelector(`.track-card[data-track="${i}"] .reverse-icon`);
+            if (icon) {
+              icon.classList.remove("on");
+              icon.style.opacity = "0.35";
+            }
+          });
+
+          this.logStatus(`Loaded mix: ${combo.name}`);
+        });
+      }
+
+      exportArchive() {
+        if (!this.savedCombinations.length) return;
+        const blob = new Blob(
+          [JSON.stringify(this.savedCombinations, null, 2)],
+          { type: "application/json" }
+        );
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement("a");
+        a.href    = url;
+        a.download = "mix-archive.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      importArchive(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data)) {
+              this.savedCombinations = data;
+              this.renderArchive();
+              document.getElementById("exportArchiveBtn").disabled = this.savedCombinations.length === 0;
+              this.logStatus("Mix archive imported");
+            }
+          } catch (err) {
+            console.error("Invalid archive", err);
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      }
+    }
+
+    const player = new MusicPlayer();
+  </script>
+</body>
+</html>
