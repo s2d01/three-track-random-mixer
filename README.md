@@ -1,5 +1,8 @@
 # Three-Track Random Mixer
 
+🔗 Live demo: https://s2d01.github.io/three-track-random-mixer/
+
+
 A lightweight browser-based tool to quickly audition and layer three random audio tracks from your local files.
 Designed for producers and sound designers who want fast, no-bullshit experimentation without installing a full plugin.
 
