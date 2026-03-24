@@ -86,8 +86,7 @@ Supported formats depend on the browser (commonly: `.wav`, `.mp3`, `.ogg`, `.m4a
 
 * Smarter randomization rules (tags, folders, type filtering).
 * Better visual feedback (levels, activity, state indicators).
-* Desktop app version (Electron/Tauri) with persistent libraries.
-* AU/VST3 plugin version for direct use inside a DAW (Logic, etc.).
+* Desktop app version (Swift- Mac only for now) with persistent libraries.
 
 ---
 
